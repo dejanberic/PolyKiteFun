@@ -1,0 +1,3 @@
+﻿using PolyKiteFun;
+
+PolyKiteGenerator.Explore();
