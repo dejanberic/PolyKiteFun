@@ -3,7 +3,7 @@
 public class HeeschSolver(Cluster prototile, int maxLayers)
 {
     private HeeschResult _bestOverallResult = new(prototile, 0, []);
-    private readonly Dictionary<(int, int), bool> _overlapCache = [];
+    private readonly Dictionary<long, bool> _overlapCache = [];
 
     // Initialize with Heesch number 0 result
 

@@ -250,7 +250,7 @@ public class Cluster(List<Kite> kites) : IEquatable<Cluster>
 
     public Cluster? TransformWithoutOverlap(Matrix3x2 matrix,
         List<Kite> allKitesToTestAgainst,
-        Dictionary<(int, int), bool> overlapCache)
+        Dictionary<long, bool> overlapCache)
     {
         bool hasOverlap = false;
         var transformedKites = new List<Kite>();
@@ -262,12 +262,15 @@ public class Cluster(List<Kite> kites) : IEquatable<Cluster>
             {
                 var existingKite = allKitesToTestAgainst[i];
                 // Use centroids as a unique key for the transformed kite pair.
-                var c1 = existingKite.Centroid.GetHashCode();
-                var c2 = transformedKite.Centroid.GetHashCode();
+                var c1 = (uint)existingKite.Centroid.GetHashCode();
+                var c2 = (uint)transformedKite.Centroid.GetHashCode();
 
-                // Order the centroids to create a canonical key, ensuring that
+                // Order the hash codes to create a canonical key, ensuring that
                 // (c1, c2) and (c2, c1) are treated as the same pair.
-                var key = c1 < c2 ? (c1, c2) : (c2, c1);
+                // Then, combine them into a single long for an efficient key.
+                long key = c1 < c2
+                    ? ((long)c1 << 32) | c2
+                    : ((long)c2 << 32) | c1;
 
                 // Check the cache, or compute and add if it's not there.
                 if (overlapCache.TryGetValue(key, out var value))
