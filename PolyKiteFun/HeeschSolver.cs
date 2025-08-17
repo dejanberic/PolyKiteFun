@@ -4,7 +4,6 @@ public class HeeschSolver(Cluster prototile, int maxLayers)
 {
     private HeeschResult _bestOverallResult = new(prototile, 0, []);
     private readonly Dictionary<(int, int), bool> _overlapCache = [];
-    private readonly ParallelOptions _parallelOptions = new() { MaxDegreeOfParallelism = 4 };
 
     // Initialize with Heesch number 0 result
 
@@ -35,7 +34,7 @@ public class HeeschSolver(Cluster prototile, int maxLayers)
             (
                 prototile,
                 successfulLayers,
-                [..currentCoronas]
+                [.. currentCoronas]
             );
         }
 
@@ -153,27 +152,22 @@ public class HeeschSolver(Cluster prototile, int maxLayers)
 
         foreach (var matchingCluster in clustersToTry)
         {
-            Parallel.ForEach(matchingCluster.BoundaryEdges, _parallelOptions, (edgeOnMatcher) =>
+            foreach (var edgeOnMatcher in matchingCluster.BoundaryEdges)
             {
                 if (Math.Abs(edgeToCover.Length - edgeOnMatcher.Length) < 0.01f)
                 {
-                    for (var targetEdgeIndex = 0; targetEdgeIndex < targetEdgesToCover.Count; targetEdgeIndex++)
+                    foreach (var targetEdge in targetEdgesToCover)
                     {
-                        var targetEdge = targetEdgesToCover[targetEdgeIndex];
                         var transform = edgeOnMatcher.ComputeTransformation(targetEdge);
                         var transformedCluster = matchingCluster.TransformWithoutOverlap(transform,
                             allKitesToTestAgainst, _overlapCache);
                         if (transformedCluster is not null)
                         {
-                            lock (validPlacements)
-                            {
-                                validPlacements.Add(transformedCluster);
-                            }
+                            validPlacements.Add(transformedCluster);
                         }
                     }
                 }
             }
-            );
         }
 
         return validPlacements;

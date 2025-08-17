@@ -276,18 +276,8 @@ public class Cluster(List<Kite> kites) : IEquatable<Cluster>
                 }
                 else
                 {
-                    lock (overlapCache)
-                    {
-                        if (overlapCache.TryGetValue(key, out value))
-                        {
-                            hasOverlap = value;
-                        }
-                        else
-                        {
-                            hasOverlap = existingKite.Overlaps(transformedKite);
-                            overlapCache.Add(key, hasOverlap);
-                        }
-                    }
+                    hasOverlap = existingKite.Overlaps(transformedKite);
+                    overlapCache.Add(key, hasOverlap);
                 }
             }
 
@@ -695,7 +685,7 @@ public class Cluster(List<Kite> kites) : IEquatable<Cluster>
         // --- Color Palette for the Coronas (Layers) ---
         var coronaColors = new Color[]
         {
-            Color.SlateGray, Color.Teal, Color.SaddleBrown, Color.DarkViolet, Color.Olive,
+            Color.SlateGray, Color.Teal, Color.SaddleBrown, Color.Olive,
             Color.Tomato, Color.MediumSeaGreen, Color.RoyalBlue, Color.Orchid, Color.Gold
         };
 
@@ -708,10 +698,11 @@ public class Cluster(List<Kite> kites) : IEquatable<Cluster>
             {
                 var corona = result.Coronas[i];
                 Color baseColor = coronaColors[i % coronaColors.Length];
+                var baseColorPixelType = baseColor.ToPixel<Rgba32>();
 
                 var fillBrush = new SolidBrush(baseColor.WithAlpha(0.588f)); // 150/255
                 var thinInternalPen = new SolidPen(baseColor.WithAlpha(0.784f), 1.0f); // 200/255
-                var thickBoundaryPen = new SolidPen(baseColor.WithAlpha(0.863f), 3.5f); // 220/255
+                var thickBoundaryPen = new SolidPen(Color.FromRgba((byte)(baseColorPixelType.R / 2), (byte)(baseColorPixelType.G / 2), (byte)(baseColorPixelType.B / 2), 220), 2.5f);
 
                 foreach (var cluster in corona)
                 {
