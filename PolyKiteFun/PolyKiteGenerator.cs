@@ -26,8 +26,10 @@ public class PolyKiteGenerator
         explorer.FindAllCombinations(n);
 
         var foundCombinations = explorer.FoundCombinations;
+        var totalCombinations = foundCombinations.Count;
+        var saveInterval = Math.Max(1, totalCombinations / 100);
 
-        for(int i = 0; i < foundCombinations.Count; i++)
+        for (int i = 0; i < totalCombinations; i++)
         {
             var prototile = foundCombinations[i];
             prototile.SolutionId = i; // Assign a solution ID for tracking.
@@ -66,8 +68,16 @@ public class PolyKiteGenerator
                 Console.WriteLine($"Failed to find a tiling for solution: {i}, time: {prototile.TimeToProcess} seconds");
             }
 
-            // Save the updated combinations list to persist the new Heesch number.
-            explorer.SaveCombinations(n);
+            // Save after every 1% of combinations are processed
+            if ((i + 1) % saveInterval == 0 && (i + 1) < totalCombinations)
+            {
+                Console.WriteLine($"Progress: {((i + 1) * 100) / totalCombinations}%. Saving combinations...");
+                explorer.SaveCombinations(n);
+            }
         }
+
+        // Final save after the loop to ensure the last batch is saved.
+        Console.WriteLine("Processing complete. Performing final save...");
+        explorer.SaveCombinations(n);
     }
 }
