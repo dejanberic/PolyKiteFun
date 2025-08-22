@@ -71,14 +71,5 @@ Create PRs and I might look at it :)
 
 
 ## License
-
-### Code
-- **Non-Commercial Use**: The code in this repository is licensed under the [MIT License](LICENSE) for non-commercial use. See the [LICENSE](LICENSE) file for details.
-- **Commercial Use**: For commercial use of the code, please contact [Dejan Beric] at [dejan.beric@live.com] to request permission and discuss licensing terms.
-
-### Images
-- **Non-Commercial Use**: Images in this repository and those hosted at [Mega.nz folder](https://mega.nz/folder/fbQ2xRwR#N3abQX7fteMSIuXKpjWWxQ) are licensed under the [MIT License](LICENSE) for non-commercial use.
-- **Commercial Use**: For commercial use of the images, please contact [Dejan Beric] at [dejan.beric@live.com] to request permission.
-
-**Note**: "Non-commercial use" refers to personal, educational, or research purposes where no profit is generated. "Commercial use" includes any use in a product, service, or project intended for profit.
+This project, including all code and images in this repository and those hosted at [Mega.nz folder](https://mega.nz/folder/fbQ2xRwR#N3abQX7fteMSIuXKpjWWxQ), is licensed under the [MIT License](LICENSE). See the [LICENSE](LICENSE) file for details.
 
