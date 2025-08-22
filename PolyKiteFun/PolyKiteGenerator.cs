@@ -27,57 +27,81 @@ public class PolyKiteGenerator
 
         var foundCombinations = explorer.FoundCombinations;
         var totalCombinations = foundCombinations.Count;
-        var saveInterval = Math.Max(1, totalCombinations / 100);
 
-        for (int i = 0; i < totalCombinations; i++)
+        Console.WriteLine($"Found {totalCombinations} unique combinations.");
+        Console.WriteLine("Do you want to process all of them? (Y/N)");
+        var choice = Console.ReadLine()?.Trim().ToUpper();
+
+        if (choice == "N")
         {
-            var prototile = foundCombinations[i];
-            prototile.SolutionId = i; // Assign a solution ID for tracking.
-
-            // Skip clusters that have already been solved.
-            if (prototile.HeeschNumber.HasValue &&
-                prototile.MaxHeeschNumberExplored.HasValue &&
-                prototile.HeeschNumber.Value <= prototile.MaxHeeschNumberExplored &&
-                prototile.MaxHeeschNumberExplored.Value >= maxLayers)
+            Console.WriteLine("Please enter the solution index to process:");
+            if (!int.TryParse(Console.ReadLine(), out int index) || index < 0 || index >= totalCombinations)
             {
-                Console.WriteLine($"Skipping solution {i}, Heesch number already known: {prototile.HeeschNumber}");
-                continue;
+                Console.WriteLine("Invalid index. Exiting.");
+                return;
+            }
+            // Process just the selected combination
+            ProcessCombination(foundCombinations[index], index, n, maxLayers, explorer);
+            explorer.SaveCombinations(n); // Save the result for the single processed item
+        }
+        else
+        {
+            // Process all combinations
+            var saveInterval = Math.Max(1, totalCombinations / 100);
+            for (int i = 0; i < totalCombinations; i++)
+            {
+                ProcessCombination(foundCombinations[i], i, n, maxLayers, explorer);
+
+                // Save after every 1% of combinations are processed
+                if ((i + 1) % saveInterval == 0 && (i + 1) < totalCombinations)
+                {
+                    Console.WriteLine($"Progress: {((i + 1) * 100) / totalCombinations}%. Saving combinations...");
+                    explorer.SaveCombinations(n);
+                }
             }
 
-            Console.WriteLine($"Starting to find a tiling for solution: {i}");
-            var start = Stopwatch.GetTimestamp();
+            // Final save after the loop to ensure the last batch is saved.
+            Console.WriteLine("Processing complete. Performing final save...");
+            explorer.SaveCombinations(n);
+        }
+    }
 
-            var solver = new HeeschSolver(prototile, maxLayers);
-            var result = solver.Solve();
-            prototile.TimeToProcess = Stopwatch.GetElapsedTime(start).TotalSeconds;
-            prototile.HeeschNumber = result.HeeschNumber;
-            prototile.MaxHeeschNumberExplored = maxLayers;
+    private static void ProcessCombination(Cluster prototile, int index, int n, int maxLayers, SystematicExplorer explorer)
+    {
+        prototile.SolutionId = index; // Assign a solution ID for tracking.
 
-            if (result.HeeschNumber > 0)
-            {
-                // Store the best result found for this shape index.
-                string dirPath = Path.Combine("combinations", n.ToString(), result.HeeschNumber.ToString());
-                Directory.CreateDirectory(dirPath);
-                string imagePath = Path.Combine(dirPath, $"heesch_{result.HeeschNumber}_solution_{i}.png");
-
-                Cluster.GenerateHeeschImage(result, imagePath);
-                Console.WriteLine($"Success in finding a tiling for solution: {i} with HeeschNumber {result.HeeschNumber}, time: {prototile.TimeToProcess} seconds");
-            }
-            else
-            {
-                Console.WriteLine($"Failed to find a tiling for solution: {i}, time: {prototile.TimeToProcess} seconds");
-            }
-
-            // Save after every 1% of combinations are processed
-            if ((i + 1) % saveInterval == 0 && (i + 1) < totalCombinations)
-            {
-                Console.WriteLine($"Progress: {((i + 1) * 100) / totalCombinations}%. Saving combinations...");
-                explorer.SaveCombinations(n);
-            }
+        // Skip clusters that have already been solved.
+        if (prototile.HeeschNumber.HasValue &&
+            prototile.MaxHeeschNumberExplored.HasValue &&
+            prototile.HeeschNumber.Value <= prototile.MaxHeeschNumberExplored &&
+            prototile.MaxHeeschNumberExplored.Value >= maxLayers)
+        {
+            Console.WriteLine($"Skipping solution {index}, Heesch number already known: {prototile.HeeschNumber}");
+            return;
         }
 
-        // Final save after the loop to ensure the last batch is saved.
-        Console.WriteLine("Processing complete. Performing final save...");
-        explorer.SaveCombinations(n);
+        Console.WriteLine($"Starting to find a tiling for solution: {index}");
+        var start = Stopwatch.GetTimestamp();
+
+        var solver = new HeeschSolver(prototile, maxLayers);
+        var result = solver.Solve();
+        prototile.TimeToProcess = Stopwatch.GetElapsedTime(start).TotalSeconds;
+        prototile.HeeschNumber = result.HeeschNumber;
+        prototile.MaxHeeschNumberExplored = maxLayers;
+
+        if (result.HeeschNumber > 0)
+        {
+            // Store the best result found for this shape index.
+            string dirPath = Path.Combine("combinations", n.ToString(), result.HeeschNumber.ToString());
+            Directory.CreateDirectory(dirPath);
+            string imagePath = Path.Combine(dirPath, $"heesch_{result.HeeschNumber}_solution_{index}.png");
+
+            Cluster.GenerateHeeschImage(result, imagePath);
+            Console.WriteLine($"Success in finding a tiling for solution: {index} with HeeschNumber {result.HeeschNumber}, time: {prototile.TimeToProcess} seconds");
+        }
+        else
+        {
+            Console.WriteLine($"Failed to find a tiling for solution: {index}, time: {prototile.TimeToProcess} seconds");
+        }
     }
 }
