@@ -12,9 +12,9 @@ public class PolyKiteGenerator
         Console.WriteLine("A value of n > 5 may take a very long time and generate many files.");
         Console.WriteLine("\nEnter the number of kites to combine (n):");
 
-        if (!int.TryParse(Console.ReadLine(), out int n) || n <= 1)
+        if (!int.TryParse(Console.ReadLine(), out int n) || n <= 0)
         {
-            Console.WriteLine("Invalid number. Please enter a number greater than 1. Exiting.");
+            Console.WriteLine("Invalid number. Please enter a number greater than 0. Exiting.");
             return;
         }
 
@@ -23,7 +23,7 @@ public class PolyKiteGenerator
 
         // Use the new systematic explorer
         var explorer = new SystematicExplorer(n);
-        explorer.FindAllCombinations(n);
+        explorer.FindAllCombinations();
 
         var foundCombinations = explorer.FoundCombinations;
         var totalCombinations = foundCombinations.Count;
@@ -41,8 +41,8 @@ public class PolyKiteGenerator
                 return;
             }
             // Process just the selected combination
-            ProcessCombination(foundCombinations[index], index, n, maxLayers, explorer);
-            explorer.SaveCombinations(n); // Save the result for the single processed item
+            ProcessCombination(foundCombinations[index], index, n, maxLayers);
+            explorer.SaveCombinations(); // Save the result for the single processed item
         }
         else
         {
@@ -50,23 +50,23 @@ public class PolyKiteGenerator
             var saveInterval = Math.Max(1, totalCombinations / 100);
             for (int i = 0; i < totalCombinations; i++)
             {
-                ProcessCombination(foundCombinations[i], i, n, maxLayers, explorer);
+                ProcessCombination(foundCombinations[i], i, n, maxLayers);
 
                 // Save after every 1% of combinations are processed
                 if ((i + 1) % saveInterval == 0 && (i + 1) < totalCombinations)
                 {
                     Console.WriteLine($"Progress: {((i + 1) * 100) / totalCombinations}%. Saving combinations...");
-                    explorer.SaveCombinations(n);
+                    explorer.SaveCombinations();
                 }
             }
 
             // Final save after the loop to ensure the last batch is saved.
             Console.WriteLine("Processing complete. Performing final save...");
-            explorer.SaveCombinations(n);
+            explorer.SaveCombinations();
         }
     }
 
-    private static void ProcessCombination(Cluster prototile, int index, int n, int maxLayers, SystematicExplorer explorer)
+    private static void ProcessCombination(Cluster prototile, int index, int n, int maxLayers)
     {
         prototile.SolutionId = index; // Assign a solution ID for tracking.
 

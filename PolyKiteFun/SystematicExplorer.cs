@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Collections.ObjectModel;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace PolyKiteFun;
@@ -16,45 +17,48 @@ public class SystematicExplorer
     {
         WriteIndented = true
     };
+    private readonly string _imageOutputDirectory;
     private readonly string _outputDirectory;
-    private int _maxKites;
+    private readonly int _maxKites;
     private readonly Kite _baseKite = new();
     public List<Cluster> FoundCombinations { get; private set; }
     private readonly HashSet<string> _foundSignatures = [];
 
-    public SystematicExplorer(int n, string outputDirectory = "combinations")
+    public SystematicExplorer(int maxKites, string outputDirectory = "combinations")
     {
-        _outputDirectory = $"{outputDirectory}\\{n}";
-        if (!Directory.Exists(_outputDirectory))
+        _outputDirectory = outputDirectory;
+        _maxKites = maxKites;
+        _imageOutputDirectory = $"{_outputDirectory}\\{maxKites}";
+        if (!Directory.Exists(_imageOutputDirectory))
         {
-            Directory.CreateDirectory(_outputDirectory);
+            Directory.CreateDirectory(_imageOutputDirectory);
         }
         FoundCombinations = [];
     }
 
-    private static string GetCacheFilePath(int n) => Path.Combine("combinations", $"combinations_{n}.json");
+    private string GetCacheFilePath(int n) => Path.Combine(_outputDirectory, $"combinations_{n}.json");
 
-    public void SaveCombinations(int n)
+    public void SaveCombinations()
     {
-        string cacheFilePath = GetCacheFilePath(n);
+        string cacheFilePath = GetCacheFilePath(_maxKites);
         // Note: Rewriting the entire file on each update can be slow for very large
         // combination sets. For true high-performance scenarios, a more advanced
         // persistence strategy like a database or append-only log might be considered.
         Console.WriteLine($"Saving {FoundCombinations.Count} combinations to {cacheFilePath}...");
-        var newCache = new CombinationCache(n, FoundCombinations);
+        var newCache = new CombinationCache(_maxKites, FoundCombinations);
         var newJson = JsonSerializer.Serialize(newCache, JsonSerializerOptions);
         File.WriteAllText(cacheFilePath, newJson);
         Console.WriteLine("Save complete.");
     }
 
-    public void FindAllCombinations(int n)
+    public void FindAllCombinations()
     {
-        if (n <= 0) return;
+        if (_maxKites <= 0) return;
 
-        string cacheFilePath = GetCacheFilePath(n);
+        string cacheFilePath = GetCacheFilePath(_maxKites);
         if (File.Exists(cacheFilePath))
         {
-            Console.WriteLine($"Loading combinations for n={n} from cache...");
+            Console.WriteLine($"Loading combinations for n={_maxKites} from cache...");
             var json = File.ReadAllText(cacheFilePath);
             var cache = JsonSerializer.Deserialize<CombinationCache>(json);
             if (cache != null)
@@ -65,7 +69,6 @@ public class SystematicExplorer
             }
         }
 
-        _maxKites = n;
         FoundCombinations.Clear();
         _foundSignatures.Clear();
 
@@ -73,11 +76,11 @@ public class SystematicExplorer
         //var initialCluster = Cluster.InitializeWithTriangle();
         //var initialCluster = Cluster.InitializeWithEinsteinTile();
 
-        Console.WriteLine($"Starting systematic search for {n} kites...");
+        Console.WriteLine($"Starting systematic search for {_maxKites} kites...");
         Explore(initialCluster);
         Console.WriteLine($"Search complete. Found {FoundCombinations.Count} unique combinations.");
 
-        SaveCombinations(n);
+        SaveCombinations();
     }
 
     //private static int counter = 0;
@@ -97,7 +100,7 @@ public class SystematicExplorer
             {
                 currentCluster.ResetCache();
                 FoundCombinations.Add(currentCluster);
-                currentCluster.GenerateImage($"{_outputDirectory}\\{FoundCombinations.Count-1}.png");
+                currentCluster.GenerateImage($"{_imageOutputDirectory}\\{FoundCombinations.Count-1}.png");
             }
 
             return;
