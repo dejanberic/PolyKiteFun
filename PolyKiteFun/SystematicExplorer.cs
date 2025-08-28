@@ -35,11 +35,11 @@ public class SystematicExplorer
         FoundCombinations = [];
     }
 
-    private string GetCacheFilePath(int n) => Path.Combine(_outputDirectory, $"combinations_{n}.json");
+    private string GetCacheFilePath() => Path.Combine(_outputDirectory, $"combinations_{_maxKites}.json");
 
     public void SaveCombinations()
     {
-        string cacheFilePath = GetCacheFilePath(_maxKites);
+        string cacheFilePath = GetCacheFilePath();
         // Note: Rewriting the entire file on each update can be slow for very large
         // combination sets. For true high-performance scenarios, a more advanced
         // persistence strategy like a database or append-only log might be considered.
@@ -54,7 +54,7 @@ public class SystematicExplorer
     {
         if (_maxKites <= 0) return;
 
-        string cacheFilePath = GetCacheFilePath(_maxKites);
+        string cacheFilePath = GetCacheFilePath();
         if (File.Exists(cacheFilePath))
         {
             Console.WriteLine($"Loading combinations for n={_maxKites} from cache...");
