@@ -147,16 +147,13 @@ public class HeeschSolver(Cluster prototile, int maxLayers)
             allKitesToTestAgainst.AddRange(neighborCluster.Kites);
         }
 
-        var clustersToTry = prototile.GetClustersToTry().ToList();
-        var targetEdgesToCover = edgeToCover.GetTargetEdgesToCover().ToList();
-
-        foreach (var matchingCluster in clustersToTry)
+        foreach (var matchingCluster in prototile.GetClustersToTry())
         {
             foreach (var edgeOnMatcher in matchingCluster.BoundaryEdges)
             {
                 if (Math.Abs(edgeToCover.Length - edgeOnMatcher.Length) < 0.01f)
                 {
-                    foreach (var targetEdge in targetEdgesToCover)
+                    foreach (var targetEdge in edgeToCover.GetTargetEdgesToCover())
                     {
                         var transform = edgeOnMatcher.ComputeTransformation(targetEdge);
                         var transformedCluster = matchingCluster.TransformWithoutOverlap(transform,

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace PolyKiteFun;
@@ -76,8 +77,10 @@ public class SystematicExplorer
         //var initialCluster = Cluster.InitializeWithEinsteinTile();
 
         Console.WriteLine($"Starting systematic search for {_maxKites} kites...");
+        var start = Stopwatch.GetTimestamp();
         Explore(initialCluster);
-        Console.WriteLine($"Search complete. Found {FoundCombinations.Count} unique combinations.");
+        var totalSeconds = Stopwatch.GetElapsedTime(start).TotalSeconds;
+        Console.WriteLine($"Search complete. Found {FoundCombinations.Count} unique combinations in {totalSeconds} seconds.");
 
         SaveCombinations();
     }
@@ -99,7 +102,7 @@ public class SystematicExplorer
             {
                 currentCluster.ResetCache();
                 FoundCombinations.Add(currentCluster);
-                currentCluster.GenerateImage($"{_imageOutputDirectory}\\{FoundCombinations.Count-1}.png");
+                currentCluster.GenerateImage($"{_imageOutputDirectory}\\{FoundCombinations.Count - 1}.png");
             }
 
             return;
@@ -115,17 +118,14 @@ public class SystematicExplorer
             {
                 if (Math.Abs(kiteEdge.Length - boundaryEdge.Length) < 0.001f)
                 {
-                    foreach (var targetEdge in boundaryEdge.GetTargetEdgesToCover())
-                    {
-                        var transform = kiteEdge.ComputeTransformation(targetEdge);
-                        var transformedKite = _baseKite.Transform(transform);
+                    var transform = kiteEdge.ComputeTransformation(boundaryEdge.Mirrored());
+                    var transformedKite = _baseKite.Transform(transform);
                         
-                        if (!currentCluster.Kites.Any(k => k.Overlaps(transformedKite)))
-                        {
-                            var nextCluster = currentCluster.Clone();
-                            nextCluster.AddKite(transformedKite);
-                            Explore(nextCluster);
-                        }
+                    if (!currentCluster.Kites.Any(k => k.Overlaps(transformedKite)))
+                    {
+                        var nextCluster = currentCluster.Clone();
+                        nextCluster.AddKite(transformedKite);
+                        Explore(nextCluster);
                     }
                 }
             }

@@ -57,8 +57,7 @@ public class Edge(PointF start, PointF end) : IEquatable<Edge>
 
     public IEnumerable<Edge> GetTargetEdgesToCover()
     {
-        //yield return new Edge(Start, End);
-        yield return this;
+        yield return this; // The original edge
         yield return Mirrored(); // The standard "back-to-back" tiling
     }
 
