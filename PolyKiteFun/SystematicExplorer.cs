@@ -23,6 +23,9 @@ public class SystematicExplorer
     private readonly Kite _baseKite = new();
     public List<Cluster> FoundCombinations { get; private set; }
     private readonly HashSet<string> _foundSignatures = [];
+    private readonly List<Tuple<string, Cluster>> _foundSignaturesWithCluster = [];
+    private int _duplicateCount = 0;
+    private readonly bool _saveDuplicateImages = false;
 
     public SystematicExplorer(int maxKites, string outputDirectory = "combinations")
     {
@@ -71,6 +74,7 @@ public class SystematicExplorer
 
         FoundCombinations.Clear();
         _foundSignatures.Clear();
+        _foundSignaturesWithCluster.Clear();
 
         var initialCluster = Cluster.InitializeWithOneKite();
         //var initialCluster = Cluster.InitializeWithTriangle();
@@ -91,7 +95,7 @@ public class SystematicExplorer
         // Base Case: If we've reached the desired number of kites, we found a valid combination.
         if (currentCluster.Kites.Count == _maxKites)
         {
-            string? canonicalSignature = ClusterDeduplicator.GetCanonicalSignature(currentCluster);
+            string? canonicalSignature = currentCluster.GenerateSignature();
             if (canonicalSignature is null)
             {
                 return;
@@ -102,7 +106,20 @@ public class SystematicExplorer
             {
                 currentCluster.ResetCache();
                 FoundCombinations.Add(currentCluster);
+                _foundSignaturesWithCluster.Add(new Tuple<string, Cluster>(canonicalSignature, currentCluster));
                 currentCluster.GenerateImage($"{_imageOutputDirectory}\\{FoundCombinations.Count - 1}.png");
+            }
+            else if (_saveDuplicateImages)
+            {
+                _duplicateCount++;
+                var item = _foundSignaturesWithCluster.Find(t => t.Item1 == canonicalSignature);
+                var itemIndex = _foundSignaturesWithCluster.IndexOf(item);
+                var path = $"{_imageOutputDirectory}\\duplicate_of_{itemIndex}\\";
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+                currentCluster.GenerateImage($"{path}{_duplicateCount}.png");
             }
 
             return;

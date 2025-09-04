@@ -1,7 +1,8 @@
 ﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Drawing.Processing;
+using System.Text;
 using System.Text.Json.Serialization;
 
 namespace PolyKiteFun;
@@ -298,6 +299,45 @@ public class Cluster(List<Kite> kites) : IEquatable<Cluster>
         }
 
         return null;
+    }
+
+    public string GenerateSignature()
+    {
+        var verts = BoundaryEdges;
+        int n = verts.Count;
+        if (n == 0) return "0|";
+
+        // Pairwise distances: n*(n-1)/2
+        var dists = new List<float>(n * (n - 1) / 2);
+        for (int i = 0; i < n - 1; i++)
+        {
+            var vi = verts[i];
+            for (int j = i + 1; j < n; j++)
+            {
+                var vj = verts[j];
+                double dx = vi.Midpoint.X - vj.Midpoint.X;
+                double dy = vi.Midpoint.Y - vj.Midpoint.Y;
+                double dist = Math.Sqrt(dx * dx + dy * dy);
+                dists.Add((float)Math.Round(dist, 4)); // 4 decimals to reduce collision risk
+
+                dx = vi.Start.X - vj.Start.X;
+                dy = vi.Start.Y - vj.Start.Y;
+                dist = Math.Sqrt(dx * dx + dy * dy);
+                dists.Add((float)Math.Round(dist, 4)); // 4 decimals to reduce collision risk
+            }
+        }
+
+        dists.Sort();
+
+        var sb = new StringBuilder();
+        // Include vertex count so different sizes cannot collide.
+        sb.Append(n).Append('|');
+        foreach (var d in dists)
+        {
+            sb.Append(d).Append(';');
+        }
+
+        return sb.ToString();
     }
 
     /// <summary>
