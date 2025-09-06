@@ -29,12 +29,12 @@ public class PolyKiteGenerator
         var totalCombinations = foundCombinations.Count;
 
         Console.WriteLine($"Found {totalCombinations} unique combinations.");
-        Console.WriteLine("Do you want to process all of them? (Y/N)");
+        Console.WriteLine("Do you want to process more than one combination? (Y/N)");
         var choice = Console.ReadLine()?.Trim().ToUpper();
 
         if (choice == "N")
         {
-            Console.WriteLine("Please enter the solution index to process:");
+            Console.WriteLine("Please enter the combination index to process:");
             if (!int.TryParse(Console.ReadLine(), out int index) || index < 0 || index >= totalCombinations)
             {
                 Console.WriteLine("Invalid index. Exiting.");
@@ -46,9 +46,15 @@ public class PolyKiteGenerator
         }
         else
         {
+            Console.WriteLine("Please enter the combination start index. Enter 0 if you want to process all of them:");
+            if (!int.TryParse(Console.ReadLine(), out int index) || index < 0 || index >= totalCombinations)
+            {
+                Console.WriteLine("Invalid index. Exiting.");
+                return;
+            }
             // Process all combinations
             var saveInterval = Math.Max(1, totalCombinations / 100);
-            for (int i = 0; i < totalCombinations; i++)
+            for (int i = index; i < totalCombinations; i++)
             {
                 ProcessCombination(foundCombinations[i], i, n, maxLayers);
 
